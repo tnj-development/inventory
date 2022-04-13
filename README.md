@@ -6,9 +6,10 @@ multiple inventory with the decay system
 
 ## installation
 
-you need to add a decay value in your qb-core/shared/items for all items
+you need to add a decay value in your qb-core/shared/items for all items, the decay can be anything from 0-100
 
 ```lua
 ["decay"] = 1.0
 ```
 
+https://discord.gg/GUhYGu999z
