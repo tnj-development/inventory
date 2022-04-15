@@ -1,327 +1,90 @@
 local QBCore = exports['qb-core']:GetCoreObject()
 
-local Jobs = {}
-local LastTime = nil
-
-local function RunAt(h, m, cb)
-	Jobs[#Jobs+1] = {
-		h  = h,
-		m  = m,
-		cb = cb
-	}
+local TimeAllowed = 60 * 60 * 24 * 1 -- Maths for 1 day dont touch its very important and could break everything
+function ConvertQuality(item)
+	local StartDate = item.created
+    local DecayRate = QBCore.Shared.Items[item.name:lower()]["decay"] ~= nil and QBCore.Shared.Items[item.name:lower()]["decay"] or 0.0
+    if DecayRate == nil then
+        DecayRate = 0
+    end
+    local TimeExtra = math.ceil((TimeAllowed * DecayRate))
+    local percentDone = 100 - math.ceil((((os.time() - StartDate) / TimeExtra) * 100))
+    if DecayRate == 0 then
+        percentDone = 100
+    end
+    if percentDone < 0 then
+        percentDone = 0
+    end
+    return percentDone
 end
 
-local function GetTime()
-	local timestamp = os.time()
-	local d = os.date('*t', timestamp).wday
-	local h = tonumber(os.date('%H', timestamp))
-	local m = tonumber(os.date('%M', timestamp))
-	return {d = d, h = h, m = m}
-end
-
-local function OnTime(d, h, m)
-	for i=1, #Jobs, 1 do
-		if Jobs[i].h == h and Jobs[i].m == m then
-			Jobs[i].cb(d, h, m)
-		end
-	end
-end
-
-local function Tick()
-	local time = GetTime()
-	if time.h ~= LastTime.h or time.m ~= LastTime.m then
-		OnTime(time.d, time.h, time.m)
-		LastTime = time
-	end
-	SetTimeout(60000, Tick)
-end
-
-LastTime = GetTime()
-
-Tick()
-
-local function InventoryItems()
-    local results = MySQL.Sync.fetchAll('SELECT citizenid, inventory FROM players', {})
-	if results[1] ~= nil then
-        local citizenid = nil
-        for k = 1, #results, 1 do
-            local row = results[k]
-            citizenid = row.citizenid
-            local sentItems = {}
-            local items = nil
-            local isOnline = QBCore.Functions.GetPlayerByCitizenId(citizenid)
-            if isOnline then
-                items = isOnline.PlayerData.items
-                for a, item in pairs(items) do
-                    local itemInfo = QBCore.Shared.Items[item.name:lower()]
-                    if item.info ~= nil and item.info.quality ~= nil then
-                        local decayAmount = QBCore.Shared.Items[item.name:lower()]["decay"] ~= nil and QBCore.Shared.Items[item.name:lower()]["decay"] or 0.0
-                        if item.info.quality == 0.0 then
-                            -- do nothing
-                        elseif (item.info.quality - decayAmount) > 0.0 then
-                            item.info.quality = item.info.quality - decayAmount
-                        elseif (item.info.quality - decayAmount) <= 0.0 then
-                            item.info.quality = 0.0
+QBCore.Functions.CreateCallback('inventory:server:ConvertQuality', function(source, cb, inventory, otherInventory)
+    local src = source
+    local data = {}
+    local Player = QBCore.Functions.GetPlayer(src)
+    for k, item in pairs(inventory) do
+        if item.created then
+            if QBCore.Shared.Items[item.name:lower()]["decay"] ~= nil or QBCore.Shared.Items[item.name:lower()]["decay"] ~= 0 then
+                if item.info then 
+                    if item.info.quality == nil then
+                        item.info.quality = 100
+                    end
+                else
+                    local info = {quality = 100}
+                    item.info = info
+                end
+                local quality = ConvertQuality(item)
+                if item.info.quality then
+                    if quality < item.info.quality then
+                        item.info.quality = quality
+                    end
+                else
+                    item.info = {quality = quality}
+                end
+            else
+                if item.info then 
+                    item.info.quality = 100
+                else
+                    local info = {quality = 100}
+                    item.info = info 
+                end
+            end
+        end
+    end
+    if otherInventory then
+        for k, item in pairs(otherInventory["inventory"]) do
+            if item.created then
+                if QBCore.Shared.Items[item.name:lower()]["decay"] ~= nil or QBCore.Shared.Items[item.name:lower()]["decay"] ~= 0 then
+                    if item.info then 
+                        if item.info.quality == nil then
+                            item.info.quality = 100
                         end
                     else
-                        if type(item.info) == 'table' then
-                            item.info.quality = 100.0
-                        elseif type(item.info) == 'string' and item.info == '' then
-                            item.info = {}
-                            item.info.quality = 100.0
-                        end
+                        local info = {quality = 100}
+                        item.info = info
                     end
-                    local modifiedItem = {
-                        name = itemInfo["name"],
-                        amount = tonumber(item.amount),
-                        info = item.info ~= nil and item.info or "",
-                        label = itemInfo["label"],
-                        description = itemInfo["description"] ~= nil and itemInfo["description"] or "",
-                        weight = itemInfo["weight"], 
-                        type = itemInfo["type"], 
-                        unique = itemInfo["unique"], 
-                        useable = itemInfo["useable"], 
-                        image = itemInfo["image"],
-                        slot = item.slot,
-                    }
-                    sentItems[#sentItems+1] = modifiedItem
-                end
-                isOnline.Functions.SetInventory(sentItems)
-                TriggerClientEvent("inventory:client:UpdatePlayerInventory", isOnline.PlayerData.source, false)
-            else
-                if row.inventory ~= nil then
-                    row.inventory = json.decode(row.inventory)
-                    if row.inventory ~= nil then 
-                        for l = 1, #row.inventory, 1 do
-                            item = row.inventory[l]
-                            local itemInfo = QBCore.Shared.Items[item.name:lower()]
-                            if itemInfo ~= nil then
-                                if item.info ~= nil and item.info.quality ~= nil then
-                                    local decayAmount = QBCore.Shared.Items[item.name:lower()]["decay"] ~= nil and QBCore.Shared.Items[item.name:lower()]["decay"] or 0.0
-                                    if item.info.quality == 0.0 then
-                                        --do nothing
-                                    elseif (item.info.quality - decayAmount) > 0.0 then
-                                        item.info.quality = item.info.quality - decayAmount
-                                    elseif (item.info.quality - decayAmount) <= 0.0 then
-                                        item.info.quality = 0.0
-                                    end
-                                else
-                                    if type(item.info) == 'table' then
-                                        item.info.quality = 100.0
-                                    elseif type(item.info) == 'string' and item.info == '' then
-                                        item.info = {}
-                                        item.info.quality = 100.0
-                                    end
-                                end
-                                local modifiedItem = {
-                                    name = itemInfo["name"],
-                                    amount = tonumber(item.amount),
-                                    info = item.info ~= nil and item.info or "",
-                                    label = itemInfo["label"],
-                                    description = itemInfo["description"] ~= nil and itemInfo["description"] or "",
-                                    weight = itemInfo["weight"], 
-                                    type = itemInfo["type"], 
-                                    unique = itemInfo["unique"], 
-                                    useable = itemInfo["useable"], 
-                                    image = itemInfo["image"],
-                                    slot = item.slot,
-                                }
-                                sentItems[#sentItems+1] = modifiedItem
-                            end
+                    local quality = ConvertQuality(item)
+                    if item.info.quality then
+                        if quality < item.info.quality then
+                            item.info.quality = quality
                         end
-                        MySQL.Async.execute('UPDATE players SET inventory = ? WHERE citizenid = ?', { json.encode(sentItems), citizenid })
+                    else
+                        item.info = {quality = quality}
+                    end
+                else
+                    if item.info then 
+                        item.info.quality = 100
+                    else
+                        local info = {quality = 100}
+                        item.info = info 
                     end
                 end
             end
-            Wait(500)
         end
-	end
-end
-
-local function StashItems()
-    local results = MySQL.Sync.fetchAll('SELECT * FROM stashitems', {})
-	if results[1] ~= nil then
-        local id = nil
-        for k = 1, #results, 1 do
-            local row = results[k]
-            id = row.id
-            local items = {}
-            if row.items ~= nil then
-                row.items = json.decode(row.items)
-                if row.items ~= nil then 
-                    for l, p in pairs(row.items) do
-                        item = row.items[l]
-                        local itemInfo = QBCore.Shared.Items[item.name:lower()]
-                        if item.info ~= nil and item.info.quality ~= nil then
-                            local decayAmount = QBCore.Shared.Items[item.name:lower()]["decay"] ~= nil and QBCore.Shared.Items[item.name:lower()]["decay"] or 0.0
-                            if item.info.quality == 0.0 then
-                                --do nothing
-                            elseif (item.info.quality - decayAmount) > 0.0 then
-                                item.info.quality = item.info.quality - decayAmount
-                            elseif (item.info.quality - decayAmount) <= 0.0 then
-                                item.info.quality = 0.0
-                            end
-                        else
-                            if type(item.info) == 'table' then
-                                item.info.quality = 100.0
-                            elseif type(item.info) == 'string' and item.info == '' then
-                                item.info = {}
-                                item.info.quality = 100.0
-                            end
-                        end
-                        local modifiedItem = {
-                            name = itemInfo["name"],
-                            amount = tonumber(item.amount),
-                            info = item.info ~= nil and item.info or "",
-                            label = itemInfo["label"],
-                            description = itemInfo["description"] ~= nil and itemInfo["description"] or "",
-                            weight = itemInfo["weight"], 
-                            type = itemInfo["type"], 
-                            unique = itemInfo["unique"], 
-                            useable = itemInfo["useable"], 
-                            image = itemInfo["image"],
-                            slot = item.slot,
-                        }
-                        items[#items+1] = modifiedItem
-                    end
-                end
-            end
-            MySQL.Async.execute('UPDATE stashitems SET items = ? WHERE id = ?', { json.encode(items), id })
-            Wait(500)
-        end
-	end
-end
-
-local function GloveboxItems()
-    local results = MySQL.Sync.fetchAll('SELECT * FROM gloveboxitems', {})
-	if results[1] ~= nil then
-        local id = nil
-        for k = 1, #results, 1 do
-            local row = results[k]
-            id = row.id
-            local items = {}
-            if row.items ~= nil then
-                row.items = json.decode(row.items)
-                if row.items ~= nil then 
-                    for l, p in pairs(row.items) do
-                        item = row.items[l]
-                        local itemInfo = QBCore.Shared.Items[item.name:lower()]
-                        if item.info ~= nil and item.info.quality ~= nil then
-                            local decayAmount = QBCore.Shared.Items[item.name:lower()]["decay"] ~= nil and QBCore.Shared.Items[item.name:lower()]["decay"] or 0.0
-                            if item.info.quality == 0.0 then
-                                --do nothing
-                            elseif (item.info.quality - decayAmount) > 0.0 then
-                                item.info.quality = item.info.quality - decayAmount
-                            elseif (item.info.quality - decayAmount) <= 0.0 then
-                                item.info.quality = 0.0
-                            end
-                        else
-                            if type(item.info) == 'table' then
-                                item.info.quality = 100.0
-                            elseif type(item.info) == 'string' and item.info == '' then
-                                item.info = {}
-                                item.info.quality = 100.0
-                            end
-
-                        end
-                        local modifiedItem = {
-                            name = itemInfo["name"],
-                            amount = tonumber(item.amount),
-                            info = item.info ~= nil and item.info or "",
-                            label = itemInfo["label"],
-                            description = itemInfo["description"] ~= nil and itemInfo["description"] or "",
-                            weight = itemInfo["weight"], 
-                            type = itemInfo["type"], 
-                            unique = itemInfo["unique"], 
-                            useable = itemInfo["useable"], 
-                            image = itemInfo["image"],
-                            slot = item.slot,
-                        }
-                        items[#items+1] = modifiedItem
-                    end
-                end
-            end
-            MySQL.Async.execute('UPDATE gloveboxitems SET items = ? WHERE id = ?', { json.encode(items), id })
-            Wait(500)
-        end
-	end
-end
-
-local function TrunkItems()
-    local results = MySQL.Sync.fetchAll('SELECT * FROM trunkitems', {})
-	if results[1] ~= nil then
-        local id = nil
-        for k = 1, #results, 1 do
-            local row = results[k]
-            id = row.id
-            local items = {}
-            if row.items ~= nil then
-                row.items = json.decode(row.items)
-                if row.items ~= nil then
-                    for l, p in pairs(row.items) do
-                        item = row.items[l]
-                        local decayAmount = QBCore.Shared.Items[item.name:lower()]["decay"] ~= nil and QBCore.Shared.Items[item.name:lower()]["decay"] or 0.0
-                        local itemInfo = QBCore.Shared.Items[item.name:lower()]
-                        if item.info ~= nil and item.info.quality ~= nil and decayAmount > 0.0 then
-                            if item.info.quality == 0.0 then
-                                --do nothing
-                            elseif (item.info.quality - decayAmount) > 0.0 then
-                                item.info.quality = item.info.quality - decayAmount
-                            elseif (item.info.quality - decayAmount) <= 0.0 then
-                                item.info.quality = 0.0
-                            end
-                        else
-                            if type(item.info) == 'table' then
-                                item.info.quality = 100.0
-                            elseif type(item.info) == 'string' and item.info == '' then
-                                item.info = {}
-                                item.info.quality = 100.0
-                            end
-
-                        end
-                        local modifiedItem = {
-                            name = itemInfo["name"],
-                            amount = tonumber(item.amount),
-                            info = item.info ~= nil and item.info or "",
-                            label = itemInfo["label"],
-                            description = itemInfo["description"] ~= nil and itemInfo["description"] or "",
-                            weight = itemInfo["weight"], 
-                            type = itemInfo["type"], 
-                            unique = itemInfo["unique"], 
-                            useable = itemInfo["useable"], 
-                            image = itemInfo["image"],
-                            slot = item.slot,
-                        }
-                        items[#items+1] = modifiedItem
-                    end
-                end
-            end
-            MySQL.Async.execute('UPDATE trunkitems SET items = ? WHERE id = ?', { json.encode(items), id })
-            Wait(500)
-        end
-	end
-end
-
-local function Decay()
-    InventoryItems()
-    Wait(500)
-    StashItems()
-    Wait(500)
-    TrunkItems()
-    Wait(500)
-    GloveboxItems()
-end
-
-CreateThread(function()
-    for k = 1, #Config.Decay, 1 do
-        time = Config.Decay[k]
-        RunAt(time, 00, Decay)
     end
+    Player.Functions.SetInventory(inventory)
+    TriggerClientEvent("inventory:client:UpdatePlayerInventory", Player.PlayerData.source, false)
+    data.inventory = inventory
+    data.other = otherInventory
+    cb(data)
 end)
-
-QBCore.Commands.Add("forcedecay", "Description", {}, true, function(source, args)  
-    InventoryItems()
-    StashItems()
-    TrunkItems()
-    GloveboxItems()
-end, "god")
