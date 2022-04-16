@@ -17,12 +17,12 @@ function ConvertQuality(item)
     end
     return percentDone
 end
-
-QBCore.Functions.CreateCallback('inventory:server:ConvertQuality', function(source, cb, inventory, otherInventory)
+QBCore.Functions.CreateCallback('inventory:server:ConvertQuality', function(source, cb, inventory, other)
     local src = source
     local data = {}
     local Player = QBCore.Functions.GetPlayer(src)
-    for k, item in pairs(inventory) do
+    for i=1, #inventory do
+        local item = inventory[i]
         if item.created then
             if QBCore.Shared.Items[item.name:lower()]["decay"] ~= nil or QBCore.Shared.Items[item.name:lower()]["decay"] ~= 0 then
                 if item.info then 
@@ -42,7 +42,7 @@ QBCore.Functions.CreateCallback('inventory:server:ConvertQuality', function(sour
                     item.info = {quality = quality}
                 end
             else
-                if item.info then 
+                if item.info ~= nil then 
                     item.info.quality = 100
                 else
                     local info = {quality = 100}
@@ -51,8 +51,9 @@ QBCore.Functions.CreateCallback('inventory:server:ConvertQuality', function(sour
             end
         end
     end
-    if otherInventory then
-        for k, item in pairs(otherInventory["inventory"]) do
+    if other then
+        for i=1, #other["inventory"] do
+            local item = other["inventory"][i]
             if item.created then
                 if QBCore.Shared.Items[item.name:lower()]["decay"] ~= nil or QBCore.Shared.Items[item.name:lower()]["decay"] ~= 0 then
                     if item.info then 
@@ -72,7 +73,7 @@ QBCore.Functions.CreateCallback('inventory:server:ConvertQuality', function(sour
                         item.info = {quality = quality}
                     end
                 else
-                    if item.info then 
+                    if item.info ~= nil then 
                         item.info.quality = 100
                     else
                         local info = {quality = 100}
@@ -85,6 +86,6 @@ QBCore.Functions.CreateCallback('inventory:server:ConvertQuality', function(sour
     Player.Functions.SetInventory(inventory)
     TriggerClientEvent("inventory:client:UpdatePlayerInventory", Player.PlayerData.source, false)
     data.inventory = inventory
-    data.other = otherInventory
+    data.other = other
     cb(data)
 end)
