@@ -42,7 +42,7 @@ QBCore.Functions.CreateCallback('inventory:server:ConvertQuality', function(sour
                     item.info = {quality = quality}
                 end
             else
-                if item.info ~= nil then 
+                if item.info then 
                     item.info.quality = 100
                 else
                     local info = {quality = 100}
@@ -73,7 +73,7 @@ QBCore.Functions.CreateCallback('inventory:server:ConvertQuality', function(sour
                         item.info = {quality = quality}
                     end
                 else
-                    if item.info ~= nil then 
+                    if item.info then 
                         item.info.quality = 100
                     else
                         local info = {quality = 100}
