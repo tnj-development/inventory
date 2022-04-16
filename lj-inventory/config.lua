@@ -1,9 +1,5 @@
 Config = {}
 
-Config.Decay = {
-    6,12,18,0
-}
-
 Config.VendingObjects = {
     "prop_vend_soda_01",
     "prop_vend_soda_02",
