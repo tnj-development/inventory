@@ -25,7 +25,10 @@ QBCore.Functions.CreateCallback('inventory:server:ConvertQuality', function(sour
     for k, item in pairs(inventory) do
         if item.created then
             if QBCore.Shared.Items[item.name:lower()]["decay"] ~= nil or QBCore.Shared.Items[item.name:lower()]["decay"] ~= 0 then
-                if item.info then 
+                if item.info then
+		    if type(item.info) == "string" then
+                        item.info = {}
+                    end
                     if item.info.quality == nil then
                         item.info.quality = 100
                     end
