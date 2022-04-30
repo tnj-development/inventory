@@ -2330,6 +2330,7 @@ var requiredItemOpen = false;
                     qualityLabel = item.info.quality;
                 }
                 if (item.info.quality == 0) {
+                    QualityColor = "rgb(192, 57, 43, 0.1)";
                     qualityLabel = "BROKEN";
                     if (!IsOtherInventory) {
                         if (!IsHotbar) {
@@ -2337,7 +2338,10 @@ var requiredItemOpen = false;
                                 .find("[data-slot=" + item.slot + "]")
                                 .find(".item-slot-quality-bar")
                                 .css({
+                                    top: "-3070%",
+                                    height: "3250%",
                                     width: "100%",
+                                    "z-index": "0",
                                     "background-color": QualityColor,
                                 })
                                 .find("p")
@@ -2347,7 +2351,10 @@ var requiredItemOpen = false;
                                 .find("[data-zhotbarslot=" + item.slot + "]")
                                 .find(".item-slot-quality-bar")
                                 .css({
+                                    top: "-2980%",
+                                    height: "3120%",
                                     width: "100%",
+                                    "z-index": "0",
                                     "background-color": QualityColor,
                                 })
                                 .find("p")
@@ -2358,7 +2365,10 @@ var requiredItemOpen = false;
                             .find("[data-slot=" + item.slot + "]")
                             .find(".item-slot-quality-bar")
                             .css({
+                                top: "-3070%",
+                                height: "3250%",
                                 width: "100%",
+                                "z-index": "0",
                                 "background-color": QualityColor,
                             })
                             .find("p")
