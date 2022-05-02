@@ -75,9 +75,10 @@ end
 
 ### QBCore.Player.LoadInventory | server/player.lua | replace with below:
 ```lua
-QBCore.Player.LoadInventory = function(PlayerData)
+function QBCore.Player.LoadInventory(PlayerData)
     PlayerData.items = {}
     local inventory = MySQL.Sync.prepare('SELECT inventory FROM players WHERE citizenid = ?', { PlayerData.citizenid })
+    local missingItems = {}
     if inventory then
         inventory = json.decode(inventory)
         if next(inventory) then
@@ -85,10 +86,6 @@ QBCore.Player.LoadInventory = function(PlayerData)
                 if item then
                     local itemInfo = QBCore.Shared.Items[item.name:lower()]
                     if itemInfo then
-                        local time = os.time()
-                        if item.created == nil then 
-                            item.created = time
-                        end
                         PlayerData.items[item.slot] = {
                             name = itemInfo['name'],
                             amount = item.amount,
@@ -103,12 +100,19 @@ QBCore.Player.LoadInventory = function(PlayerData)
                             shouldClose = itemInfo['shouldClose'],
                             slot = item.slot,
                             combinable = itemInfo['combinable'],
-                            created = item.created
+                            slot = item.created,
                         }
+                    else
+                        missingItems[#missingItems+1] = item.name:lower()
                     end
+
                 end
             end
         end
+    end
+
+    if #missingItems > 0 then
+        print(("%s the following items removed as they no longer exist: %s"):format(GetPlayerName(PlayerData.source), json.encode(missingItems)))
     end
     return PlayerData
 end
@@ -116,29 +120,27 @@ end
 
 ### QBCore.Player.SaveInventory | server/player.lua | replace with below:
 ```lua
-QBCore.Player.SaveInventory = function(source)
-    local src = source
-    if QBCore.Players[src] then
-        local PlayerData = QBCore.Players[src].PlayerData
-        local items = PlayerData.items
-        local ItemsJson = {}
-        if items and next(items) then
-            for slot, item in pairs(items) do
-                if items[slot] then
-                    ItemsJson[#ItemsJson+1] = {
-                        name = item.name,
-                        amount = item.amount,
-                        info = item.info,
-                        type = item.type,
-                        created = item.created,
-                        slot = slot,
-                    }
-                end
+function QBCore.Player.SaveInventory(source)
+    if not QBCore.Players[source] then return end
+    local PlayerData = QBCore.Players[source].PlayerData
+    local items = PlayerData.items
+    local ItemsJson = {}
+    if items and next(items) then
+        for slot, item in pairs(items) do
+            if items[slot] then
+                ItemsJson[#ItemsJson+1] = {
+                    name = item.name,
+                    amount = item.amount,
+                    info = item.info,
+                    type = item.type,
+                    slot = slot,
+                    created = item.created
+                }
             end
-            MySQL.Async.prepare('UPDATE players SET inventory = ? WHERE citizenid = ?', { json.encode(ItemsJson), PlayerData.citizenid })
-        else
-            MySQL.Async.prepare('UPDATE players SET inventory = ? WHERE citizenid = ?', { '[]', PlayerData.citizenid })
         end
+        MySQL.Async.prepare('UPDATE players SET inventory = ? WHERE citizenid = ?', { json.encode(ItemsJson), PlayerData.citizenid })
+    else
+        MySQL.Async.prepare('UPDATE players SET inventory = ? WHERE citizenid = ?', { '[]', PlayerData.citizenid })
     end
 end
 ```
