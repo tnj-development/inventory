@@ -100,7 +100,7 @@ function QBCore.Player.LoadInventory(PlayerData)
                             shouldClose = itemInfo['shouldClose'],
                             slot = item.slot,
                             combinable = itemInfo['combinable'],
-                            slot = item.created,
+                            created = item.created,
                         }
                     else
                         missingItems[#missingItems+1] = item.name:lower()
