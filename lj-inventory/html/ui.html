@@ -22,7 +22,7 @@
         <div id="qbcore-inventory">
             <div class="inventory-info">
                 <div class="player-inv-info">
-                    <span id="player-inv-label">Player</span><br>
+                    <span id="player-inv-label">Speler</span><br>
                     <!-- <img class="weight-img" src="images/weight.png"> -->
                         <div>
                             <div id="progressbar">
@@ -50,15 +50,15 @@
             </div>
                 <div class="inv-options">
                     <div class="inv-options-list">
-                        <img class="brand-logo" src="./images/lj-symbol.svg"></img>
+                        <img class="brand-logo" src="./images/havenstad.svg"></img>
 <input type="number" id="item-amount" class="inv-option-item" min=1 max="10000" placeholder="Amount" pattern="[0-9]" onfocus="this.value=''" placeholder="" oninput="validity.valid||(value='');"></input>
                         <div class="inv-option-item" id="item-use"><p>Use</p></div>
                         <!-- <img class="inv-option-hand" id= "item-use" src="images/hand-1.png"> -->
-                        <div class="inv-option-item" id="item-give"><p>Give</p></div>
-                        <div class="inv-option-item" id="inv-close"><p>Close</p></div>
+                        <div class="inv-option-item" id="item-give"><p>Geef</p></div>
+                        <div class="inv-option-item" id="inv-close"><p>Sluit</p></div>
                         <div class="combine-option-container">
-                            <div class="btn-combine CombineItem"><p>Combine</p></div>
-                            <div class="btn-combine SwitchItem"><p>Switch</p></div>
+                            <div class="btn-combine CombineItem"><p>Combineren</p></div>
+                            <div class="btn-combine SwitchItem"><p>Omwisselen</p></div>
                         </div>
                     </div>
                 </div>
@@ -89,7 +89,7 @@
                   <q-dialog v-model="options">
                     <q-card>
                       <q-card-section>
-                        <div class="text-h6">Options</div>
+                        <div class="text-h6">Opties</div>
                       </q-card-section>
               
                       <q-card-section class="q-pt-none">
@@ -99,8 +99,8 @@
                                 <q-checkbox dark v-on:click="select($event)" v-model="showblur" color="checkbox"></q-checkbox>
                             </q-item-section>
                             <q-item-section>
-                                <q-item-label class="text-check">Show Background Blur</q-item-label>
-                                <q-item-label caption>Disabling this will remove the background blur effect while inside your inventory.</q-item-label>
+                                <q-item-label class="text-check">Achtergrond blur tonen</q-item-label>
+                                <q-item-label caption>Als u dit uitschakelt, wordt het achtergrondvervagingseffect verwijderd terwijl u zich in uw inventaris bevindt.</q-item-label>
                             </q-item-section>
                             </q-item>
                         </div>
@@ -119,44 +119,44 @@
                       </q-card-section>
               
                       <q-card-section class="q-pt-none">
-                        To move a full stack make sure the <b>AMOUNT FIELD</b> is empty. You can type the specific <b>NUMBER AMOUNT</b> for how much you would like to move. To <b>USE</b> an item, drag it into the middle option titled "USE" or you can <b>DOUBLE CLICK</b>. The <b>AMOUNT FIELD</b> will NOT reset when you close your inventory, so make sure you get in the habit of clearing the number!
+                        Zorg ervoor dat het <b>AMOUNT FIELD</b> leeg is om een volle stapel te verplaatsen. U kunt het specifieke <b>AANTAL BEDRAG</b> typen voor hoeveel u wilt verhuizen. Om een item te <b>GEBRUIKEN</b>, sleept u het naar de middelste optie genaamd "GEBRUIK" of u kunt <b>DUBBELE KLIK</b>. Het <b>AMOUNT FIELD</b> wordt NIET gereset wanneer je je inventaris sluit, dus zorg ervoor dat je er een gewoonte van maakt om het aantal te wissen!
                       </q-card-section>
 
                       <q-card-section>
-                        <div class="text-h6">Middle Options:</div>
+                        <div class="text-h6">Middelste opties:</div>
                       </q-card-section>
 
                       <q-card-section class="q-pt-none">
                         <ul>
-                            <li>Use: Drag item to this button to use that item</li>
-                            <li>Give: Give item to other citizens around you</li>
-                            <li>Combine: Combine certain items together</li>
-                            <li>Switch: Switch current item</li>
-                            <li>Attachments: When you have items you can attach to your weapons</li>
-                            <li>Close: Another way to close the inventory</li>
+                          <li>Gebruik: sleep item naar deze knop om dat item te gebruiken</li>
+                          <li>Geef: geef een item aan andere burgers om je heen</li>
+                          <li>Combineren: combineer bepaalde items samen</li>
+                          <li>Overschakelen: huidige item wisselen</li>
+                          <li>Hulpstukken: als je items hebt die je aan je wapens kunt bevestigen</li>
+                          <li>Sluiten: een andere manier om de inventaris te sluiten</li>
                         </ul>
                       </q-card-section>
 
                       <q-card-section>
-                        <div class="text-h6">Keybinds (default):</div>
+                        <div class="text-h6">Toetsenbinding (standaard):</div>
                       </q-card-section>
 
                       <q-card-section class="q-pt-none">
                         <ul>
-                            <li>Left Click: Normal drag</li>
-                            <li>Right Click: Drop item or move single item storage</li>
-                            <li>Double Click: Use Item</li>
-                            <li>Number 0-9: Will input the typed number</li>
-                            <li>BACKSPACE Key: Will set <b>AMOUNT</b> to blank/move entire item stack</li>
+                          <li>Links klikken: normaal slepen</li>
+                          <li>Rechts klikken: item neerzetten of opslag voor één item verplaatsen</li>
+                          <li>Dubbelklik: item gebruiken</li>
+                          <li>Nummer 0-9: zal het getypte nummer invoeren</li>
+                          <li>BACKSPACE-toets: zal <b>AMOUNT</b> instellen op leeg/hele itemstapel verplaatsen</li>
                         </ul>
                       </q-card-section>
 
                       <q-card-section>
-                        <div class="text-h6">Shops:</div>
+                        <div class="text-h6">Winkels:</div>
                       </q-card-section>
                       
                       <q-card-section class="q-pt-none">
-                        Put in the <b>AMOUNT</b> you want to buy in the <b>AMOUNT FIELD</b> and then drag the shop item into your inventory
+                        Voer het <b>BEDRAG</b> in dat u wilt kopen in het <b>BEDRAGVELD</b> en sleep het winkelitem vervolgens naar uw inventaris
                       </q-card-section>
                     </q-card>
                   </q-dialog>
@@ -176,7 +176,7 @@
 
             <div class="weapon-attachments-remove"><i class="fas fa-trash"></i></div>
 
-            <div class="weapon-attachments-back"><p>RETURN</p></div>
+            <div class="weapon-attachments-back"><p>TERUGKEREN</p></div>
         </div>
         <div class="itemboxes-container"></div>
         <div class="itembox-container template"></div>
