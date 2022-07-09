@@ -876,6 +876,10 @@ CreateThread(function()
     end
 end)
 
+RegisterNUICallback('Notify', function(data)
+    QBCore.Functions.Notify(data.message, data.type)
+end)
+
 --[[CreateThread(function()
 	while true do
 		Wait(0)
