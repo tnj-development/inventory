@@ -152,7 +152,7 @@ end
 ```
 
 
-#if u are on Latest updated qbcore u need to replace these function not above
+# if u are on Latest updated qbcore u need to replace these function not above
 
 
 ### self.Functions.AddItem | server/player.lua | replace with below:
