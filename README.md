@@ -158,7 +158,7 @@ end
 ### self.Functions.AddItem | server/player.lua | replace with below:
 
 ```lua
-    function self.Functions.AddItem(item, amount, slot, info,created)
+       function self.Functions.AddItem(item, amount, slot, info,created)
         local totalWeight = QBCore.Player.GetTotalWeight(self.PlayerData.items)
         local itemInfo = QBCore.Shared.Items[item:lower()]
 
@@ -186,31 +186,45 @@ end
             }
         end
         if (totalWeight + (itemInfo['weight'] * amount)) <= QBCore.Config.Player.MaxWeight then
-            if (slot and self.PlayerData.items[slot]) and (self.PlayerData.items[slot].name:lower() == item:lower()) and self.PlayerData.items[slot].info.quality == info.quality and (itemInfo['type'] == 'item' and not itemInfo['unique']) then
- 
-                self.PlayerData.items[slot].amount = self.PlayerData.items[slot].amount + amount
- 
 
-                if not self.Offline then
-                    self.Functions.UpdatePlayerData()
-                    TriggerEvent('qb-log:server:CreateLog', 'playerinventory', 'AddItem', 'green', '**' .. GetPlayerName(self.PlayerData.source) .. ' (citizenid: ' .. self.PlayerData.citizenid .. ' | id: ' .. self.PlayerData.source .. ')** got item: [slot:' .. slot .. '], itemname: ' .. self.PlayerData.items[slot].name .. ', added amount: ' .. amount .. ', new total amount: ' .. self.PlayerData.items[slot].amount)
-                end
 
-                return true
+            if (slot and self.PlayerData.items[slot]) and (self.PlayerData.items[slot].name:lower() == item:lower()) and (itemInfo['type'] == 'item' and not itemInfo['unique'])  then
+            
+                if info.quality == self.PlayerData.items[slot].info.quality  or self.PlayerData.items[slot].info.quality >= 99 then
 
-            elseif not itemInfo['unique'] or (not slot or slot == nil) or itemInfo['type'] == 'item' and self.PlayerData.items[slot].info.quality ~= info.quality and self.PlayerData.items[slot].name:lower() == item:lower() then
-                for i = 1, QBConfig.Player.MaxInvSlots, 1 do
-                    if self.PlayerData.items[i] == nil then
-                        self.PlayerData.items[i] = { name = itemInfo['name'], amount = amount, info = info or '', label = itemInfo['label'], description = itemInfo['description'] or '', weight = itemInfo['weight'], type = itemInfo['type'], unique = itemInfo['unique'], useable = itemInfo['useable'], image = itemInfo['image'], shouldClose = itemInfo['shouldClose'], slot = i, combinable = itemInfo['combinable'], created = itemInfo['created'] }
+                    self.PlayerData.items[slot].amount = self.PlayerData.items[slot].amount + amount        
+                    if not self.Offline then
+                        self.Functions.UpdatePlayerData()
+                        TriggerEvent('qb-log:server:CreateLog', 'playerinventory', 'AddItem', 'green', '**' .. GetPlayerName(self.PlayerData.source) .. ' (citizenid: ' .. self.PlayerData.citizenid .. ' | id: ' .. self.PlayerData.source .. ')** got item: [slot:' .. slot .. '], itemname: ' .. self.PlayerData.items[slot].name .. ', added amount: ' .. amount .. ', new total amount: ' .. self.PlayerData.items[slot].amount)
+                    end         
+                    return true
 
-                        if not self.Offline then
-                            self.Functions.UpdatePlayerData()
-                            TriggerEvent('qb-log:server:CreateLog', 'playerinventory', 'AddItem', 'green', '**' .. GetPlayerName(self.PlayerData.source) .. ' (citizenid: ' .. self.PlayerData.citizenid .. ' | id: ' .. self.PlayerData.source .. ')** got item: [slot:' .. i .. '], itemname: ' .. self.PlayerData.items[i].name .. ', added amount: ' .. amount .. ', new total amount: ' .. self.PlayerData.items[i].amount)
+                else
+                    slot = nil
+                    for i = 1, QBConfig.Player.MaxInvSlots, 1 do
+                        if self.PlayerData.items[i] == nil then
+                            self.PlayerData.items[i] = { name = itemInfo['name'], amount = amount, info = info or '', label = itemInfo['label'], description = itemInfo['description'] or '', weight = itemInfo['weight'], type = itemInfo['type'], unique = itemInfo['unique'], useable = itemInfo['useable'], image = itemInfo['image'], shouldClose = itemInfo['shouldClose'], slot = i, combinable = itemInfo['combinable'], created = itemInfo['created'] }
+    
+                            if not self.Offline then
+                                self.Functions.UpdatePlayerData()
+                                TriggerEvent('qb-log:server:CreateLog', 'playerinventory', 'AddItem', 'green', '**' .. GetPlayerName(self.PlayerData.source) .. ' (citizenid: ' .. self.PlayerData.citizenid .. ' | id: ' .. self.PlayerData.source .. ')** got item: [slot:' .. i .. '], itemname: ' .. self.PlayerData.items[i].name .. ', added amount: ' .. amount .. ', new total amount: ' .. self.PlayerData.items[i].amount)
+                            end
+    
+                            return true
                         end
-
-                        return true
                     end
+
                 end
+
+            elseif not itemInfo['unique'] and slot or slot and self.PlayerData.items[slot] == nil then
+                    self.PlayerData.items[slot] = { name = itemInfo['name'], amount = amount, info = info or '', label = itemInfo['label'], description = itemInfo['description'] or '', weight = itemInfo['weight'], type = itemInfo['type'], unique = itemInfo['unique'], useable = itemInfo['useable'], image = itemInfo['image'], shouldClose = itemInfo['shouldClose'], slot = slot, combinable = itemInfo['combinable'] ,created = itemInfo['created']}
+    
+                    if not self.Offline then
+                        self.Functions.UpdatePlayerData()
+                        TriggerEvent('qb-log:server:CreateLog', 'playerinventory', 'AddItem', 'green', '**' .. GetPlayerName(self.PlayerData.source) .. ' (citizenid: ' .. self.PlayerData.citizenid .. ' | id: ' .. self.PlayerData.source .. ')** got item: [slot:' .. slot .. '], itemname: ' .. self.PlayerData.items[slot].name .. ', added amount: ' .. amount .. ', new total amount: ' .. self.PlayerData.items[slot].amount)
+                    end
+    
+                    return true
 
             elseif itemInfo['unique'] or (not slot or slot == nil) or itemInfo['type'] == 'weapon' then
                 for i = 1, QBConfig.Player.MaxInvSlots, 1 do
