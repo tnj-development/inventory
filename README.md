@@ -98,7 +98,7 @@ self.Functions.AddItem = function(item, amount, slot, info, created)
     end
     return false
 end
-
+```
 ### QBCore.Player.LoadInventory | server/player.lua | replace with below:
 ```lua
 function QBCore.Player.LoadInventory(PlayerData)
