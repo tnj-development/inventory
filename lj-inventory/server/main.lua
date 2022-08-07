@@ -6,7 +6,7 @@ local Trunks = {}
 local Gloveboxes = {}
 local Stashes = {}
 local ShopItems = {}
-
+local vitri = 1
 -- Functions
 
 local function recipeContains(recipe, fromItem)
@@ -838,7 +838,32 @@ RegisterNetEvent('inventory:server:SaveInventory', function(type, id)
 		end
 	end
 end)
-
+RegisterNetEvent('q4d:server:setQuality',function (amount, name)
+	local src = source
+	local Player = QBCore.Functions.GetPlayer(src)
+	if name then
+		for k, v in pairs(Player.PlayerData.items) do
+			if v.name == name then
+				if (v.info.quality - amount) > 0 then
+					v.info.quality = v.info.quality - amount
+					Player.Functions.SetInventory(Player.PlayerData.items, true)
+				else
+					v.info.quality = 0
+					Player.Functions.SetInventory(Player.PlayerData.items, true)
+				end
+			end
+		end
+	else
+		local itemData = Player.PlayerData.items[vitri]
+		if (itemData.info.quality - amount) > 0 then
+			itemData.info.quality = itemData.info.quality - amount
+			Player.Functions.SetInventory(Player.PlayerData.items, true)
+		else
+			itemData.info.quality = 0
+			Player.Functions.SetInventory(Player.PlayerData.items, true)
+		end
+	end
+end)
 -- RegisterNetEvent('inventory:server:UseItemSlot', function(slot)
 -- 	local src = source
 -- 	local Player = QBCore.Functions.GetPlayer(src)
@@ -884,6 +909,7 @@ RegisterNetEvent('inventory:server:UseItemSlot', function(slot)
 		elseif itemData.useable then
 			if itemData.info.quality then
 				if itemData.info.quality > 0 then
+						vitri = slot
 					TriggerClientEvent("QBCore:Client:UseItem", src, itemData)
 					TriggerClientEvent('inventory:client:ItemBox', src, itemInfo, "use")
 				else
@@ -911,6 +937,7 @@ RegisterNetEvent('inventory:server:UseItem', function(inventory, item)
 					end
 				end
 			end
+				vitri = item.slot
 			TriggerClientEvent("QBCore:Client:UseItem", src, itemData)
 		end
 	end
