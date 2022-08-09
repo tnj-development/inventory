@@ -72,17 +72,26 @@ self.Functions.AddItem = function(item, amount, slot, info, created)
 end
 ```
 ### QBCore.Player.GetFirstSlotByItem | server/player.lua | replace with below:
+```lua
 function QBCore.Player.GetFirstSlotByItem(items, itemName, info)
     if not items then return nil end
     for slot, item in pairs(items) do
-        if item.name:lower() == itemName:lower() then
-            if tonumber(item.info.quality) == tonumber(info.quality) then
-                return tonumber(slot)
+        if info then
+            if item.name:lower() == itemName:lower() then
+                if tonumber(item.info.quality) == tonumber(info.quality) then
+                    return tonumber(slot)
+                end
             end
-        end
+         else
+             if item.name:lower() == itemName:lower() then
+                   return tonumber(slot)
+                end
+             end
+         end
     end
     return nil
 end
+```
 ### QBCore.Player.LoadInventory | server/player.lua | replace with below:
 ```lua
 function QBCore.Player.LoadInventory(PlayerData)
