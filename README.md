@@ -83,8 +83,8 @@ function QBCore.Player.GetFirstSlotByItem(items, itemName, info)
                 end
             end
          else
-             if item.name:lower() == itemName:lower() then
-                   return tonumber(slot)
+             if item.name:lower() == itemName:lower() and tonumber(item.info.quality) > 0 then
+                return tonumber(slot)
             end
          end
     end
