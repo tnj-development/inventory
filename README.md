@@ -38,7 +38,7 @@ self.Functions.AddItem = function(item, amount, slot, info, created)
         return
     end
     local amount = tonumber(amount)
-    local slot = tonumber(slot) or QBCore.Player.GetFirstSlotByItem(self.PlayerData.items, item)
+    local slot = tonumber(slot) or QBCore.Player.GetFirstSlotByItem(self.PlayerData.items, item, info)
     if itemInfo['type'] == 'weapon' and info == nil then
         info = {
             serie = tostring(QBCore.Shared.RandomInt(2) .. QBCore.Shared.RandomStr(3) .. QBCore.Shared.RandomInt(1) .. QBCore.Shared.RandomStr(2) .. QBCore.Shared.RandomInt(3) .. QBCore.Shared.RandomStr(4)),
@@ -99,6 +99,27 @@ self.Functions.AddItem = function(item, amount, slot, info, created)
     return false
 end
 ```
+### QBCore.Player.GetFirstSlotByItem | server/player.lua | replace with below:
+```lua
+function QBCore.Player.GetFirstSlotByItem(items, itemName, info)
+    if not items then return nil end
+    for slot, item in pairs(items) do
+        if info then
+            if item.name:lower() == itemName:lower() then
+                if tonumber(item.info.quality) == tonumber(info.quality) then
+                    return tonumber(slot)
+                end
+            end
+         else
+             if item.name:lower() == itemName:lower() and tonumber(item.info.quality) > 0 then
+                return tonumber(slot)
+            end
+         end
+    end
+    return nil
+end
+```
+
 ### QBCore.Player.LoadInventory | server/player.lua | replace with below:
 ```lua
 function QBCore.Player.LoadInventory(PlayerData)
