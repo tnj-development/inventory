@@ -873,6 +873,7 @@ RegisterNetEvent('inventory:server:UseItemSlot', function(slot)
 		if itemData.type == "weapon" then
 			if itemData.info.quality then
 				if itemData.info.quality > 0 then
+					vitri = slot
 					TriggerClientEvent("inventory:client:UseWeapon", src, itemData, true)
 				else
 					TriggerClientEvent("inventory:client:UseWeapon", src, itemData, false)
@@ -890,6 +891,7 @@ RegisterNetEvent('inventory:server:UseItemSlot', function(slot)
 					TriggerClientEvent("QBCore:Notify", src, "You can't use this item", "error")
 				end
 			else
+				
 				TriggerClientEvent("QBCore:Client:UseItem", src, itemData)
 				TriggerClientEvent('inventory:client:ItemBox', src, itemInfo, "use")
 			end
@@ -911,6 +913,7 @@ RegisterNetEvent('inventory:server:UseItem', function(inventory, item)
 					end
 				end
 			end
+			vitri = item.slot
 			TriggerClientEvent("QBCore:Client:UseItem", src, itemData)
 		end
 	end
@@ -1660,6 +1663,33 @@ QBCore.Functions.CreateUseableItem("id_card", function(source, item)
 					}
 				}
 			)
+		end
+	end
+end)
+
+RegisterNetEvent('lj-inventory:server:setQuality',function (amount, name)
+	local src = source
+	local Player = QBCore.Functions.GetPlayer(src)
+	if name then
+		for k, v in pairs(Player.PlayerData.items) do
+			if v.name == name then
+				if (v.info.quality - amount) > 0 then
+					v.info.quality = v.info.quality - amount
+					Player.Functions.SetInventory(Player.PlayerData.items, true)
+				else
+					v.info.quality = 0
+					Player.Functions.SetInventory(Player.PlayerData.items, true)
+				end
+			end
+		end
+	else
+		local itemData = Player.PlayerData.items[vitri]
+		if (itemData.info.quality - amount) > 0 then
+			itemData.info.quality = itemData.info.quality - amount
+			Player.Functions.SetInventory(Player.PlayerData.items, true)
+		else
+			itemData.info.quality = 0
+			Player.Functions.SetInventory(Player.PlayerData.items, true)
 		end
 	end
 end)
