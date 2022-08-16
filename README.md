@@ -30,7 +30,7 @@ self.Functions.AddItem = function(item, amount, slot, info, created)
         itemInfo['created'] = created
     end
     -- itemInfo['created'] = time
-    if itemInfo["type"] == 'item' and info == nil then
+     if itemInfo["type"] == 'item' and (info == nil or info == '') then
         info = { quality = 100 }
     end
     if itemInfo == nil then
