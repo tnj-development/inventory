@@ -1,6 +1,7 @@
 local QBCore = exports['qb-core']:GetCoreObject()
 
 local TimeAllowed = 60 * 60 * 24 * 1 -- Maths for 1 day dont touch its very important and could break everything
+
 function ConvertQuality(item)
 	local StartDate = item.created
     local DecayRate = QBCore.Shared.Items[item.name:lower()]["decay"] ~= nil and QBCore.Shared.Items[item.name:lower()]["decay"] or 0.0
@@ -22,11 +23,11 @@ QBCore.Functions.CreateCallback('inventory:server:ConvertQuality', function(sour
     local src = source
     local data = {}
     local Player = QBCore.Functions.GetPlayer(src)
-    for k, item in pairs(inventory) do
+    for _, item in pairs(inventory) do
         if item.created then
             if QBCore.Shared.Items[item.name:lower()]["decay"] ~= nil or QBCore.Shared.Items[item.name:lower()]["decay"] ~= 0 then
                 if item.info then
-		    if type(item.info) == "string" then
+                    if type(item.info) == "string" then
                         item.info = {}
                     end
                     if item.info.quality == nil then
@@ -49,16 +50,16 @@ QBCore.Functions.CreateCallback('inventory:server:ConvertQuality', function(sour
                     item.info.quality = 100
                 else
                     local info = {quality = 100}
-                    item.info = info 
+                    item.info = info
                 end
             end
         end
     end
     if other then
-        for k, item in pairs(other["inventory"]) do
+        for _, item in pairs(other["inventory"]) do
             if item.created then
                 if QBCore.Shared.Items[item.name:lower()]["decay"] ~= nil or QBCore.Shared.Items[item.name:lower()]["decay"] ~= 0 then
-                    if item.info then 
+                    if item.info then
                         if item.info.quality == nil then
                             item.info.quality = 100
                         end
@@ -79,7 +80,7 @@ QBCore.Functions.CreateCallback('inventory:server:ConvertQuality', function(sour
                         item.info.quality = 100
                     else
                         local info = {quality = 100}
-                        item.info = info 
+                        item.info = info
                     end
                 end
             end
