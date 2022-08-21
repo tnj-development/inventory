@@ -1233,13 +1233,6 @@ RegisterNetEvent('inventory:server:SaveInventory', function(type, id)
 			Gloveboxes[id].isOpen = false
 		end
 	elseif type == "stash" then
-		local indexstart, indexend = string.find(id, 'Backpack_')
-		if indexstart and indexend then
-			TriggerEvent('keep-backpack:server:saveBackpack', source, id, Stashes[id].items, function(close)
-				Stashes[id].isOpen = close
-			end)
-			return
-		end
 		SaveStashItems(id, Stashes[id].items)
 	elseif type == "drop" then
 		if Drops[id] then
@@ -2025,12 +2018,12 @@ QBCore.Commands.Add("rob", "Rob Player", {}, false, function(source, args)
 	TriggerClientEvent("police:client:RobPlayer", source)
 end)
 
-QBCore.Commands.Add("giveitem", "Give An Item (Admin Only)", {{name="id", help="Player ID"},{name="item", help="Name of the item (not a label)"}, {name="amount", help="Amount of items"}}, false, function(source, args)
-	local id = tonumber(args[1])
-	local Player = QBCore.Functions.GetPlayer(id)
-	local itemData = QBCore.Shared.Items[tostring(args[2]):lower()]
+QBCore.Commands.Add("giveitem", "Give An Item (Admin Only)", {{name="id", help="Player ID"},{name="item", help="Name of the item (not a label)"}, {name="amount", help="Amount of items"}}, true, function(source, args)
+	local Player = QBCore.Functions.GetPlayer(tonumber(args[1]))
 	local amount = tonumber(args[3])
+	local itemData = QBCore.Shared.Items[tostring(args[2]):lower()]
 	if Player then
+		if amount > 0 then
 			if itemData then
 				-- check iteminfo
 				local info = {}
@@ -2042,98 +2035,36 @@ QBCore.Commands.Add("giveitem", "Give An Item (Admin Only)", {{name="id", help="
 					info.gender = Player.PlayerData.charinfo.gender
 					info.nationality = Player.PlayerData.charinfo.nationality
 				elseif itemData["name"] == "driver_license" then
-					info.citizenid = Player.PlayerData.citizenid
 					info.firstname = Player.PlayerData.charinfo.firstname
 					info.lastname = Player.PlayerData.charinfo.lastname
 					info.birthdate = Player.PlayerData.charinfo.birthdate
-					info.gender = Player.PlayerData.charinfo.gender
-					info.nationality = Player.PlayerData.charinfo.nationality
 					info.type = "Class C Driver License"
-				elseif itemData["name"] == "weaponlicense" then
-					info.citizenid = Player.PlayerData.citizenid
-					info.firstname = Player.PlayerData.charinfo.firstname
-					info.lastname = Player.PlayerData.charinfo.lastname
-					info.birthdate = Player.PlayerData.charinfo.birthdate
-					info.gender = Player.PlayerData.charinfo.gender
-					info.nationality = Player.PlayerData.charinfo.nationality
-					info.type = "Class One Weapon License"
-				elseif itemData["name"] == "huntinglicense" then
-					info.citizenid = Player.PlayerData.citizenid
-					info.firstname = Player.PlayerData.charinfo.firstname
-					info.lastname = Player.PlayerData.charinfo.lastname
-					info.birthdate = Player.PlayerData.charinfo.birthdate
-					info.gender = Player.PlayerData.charinfo.gender
-					info.nationality = Player.PlayerData.charinfo.nationality
-					info.type = "Hunting License"
-				elseif itemData["name"] == "fishinglicense" then
-					info.citizenid = Player.PlayerData.citizenid
-					info.firstname = Player.PlayerData.charinfo.firstname
-					info.lastname = Player.PlayerData.charinfo.lastname
-					info.birthdate = Player.PlayerData.charinfo.birthdate
-					info.gender = Player.PlayerData.charinfo.gender
-					info.nationality = Player.PlayerData.charinfo.nationality
-					info.type = "Deep Sea Fishing License"
-				elseif itemData["name"] == "waterslicense" then
-					info.citizenid = Player.PlayerData.citizenid
-					info.firstname = Player.PlayerData.charinfo.firstname
-					info.lastname = Player.PlayerData.charinfo.lastname
-					info.birthdate = Player.PlayerData.charinfo.birthdate
-					info.gender = Player.PlayerData.charinfo.gender
-					info.nationality = Player.PlayerData.charinfo.nationality
-					info.type = "Waters License"
 				elseif itemData["type"] == "weapon" then
 					amount = 1
 					info.serie = tostring(QBCore.Shared.RandomInt(2) .. QBCore.Shared.RandomStr(3) .. QBCore.Shared.RandomInt(1) .. QBCore.Shared.RandomStr(2) .. QBCore.Shared.RandomInt(3) .. QBCore.Shared.RandomStr(4))
-					info.quality = 100
 				elseif itemData["name"] == "harness" then
 					info.uses = 20
-				elseif itemData["name"] == "laptop_blue" then
-					info.uses = 3
-				elseif itemData["name"] == "laptop_red" then
-					info.uses = 3
-				elseif itemData["name"] == "laptop_gold" then
-					info.uses = 3
-				elseif itemData["name"] == "laptop_pink" then
-					info.uses = 3
-				elseif itemData["name"] == "dabcartfull" then
-					info.uses = 5
-				elseif itemData["name"] == "crfleecacard" then
-					info.uses = 3
 				elseif itemData["name"] == "markedbills" then
 					info.worth = math.random(5000, 10000)
 				elseif itemData["name"] == "labkey" then
 					info.lab = exports["qb-methlab"]:GenerateRandomLab()
-				elseif itemData.name == 'tendanivel1' then
-					info = {
-						tendaid = math.random(111,999),
-						tendaOwner = Player.PlayerData.charinfo.firstname.." "..Player.PlayerData.charinfo.lastname,
-					}
-				Player.Functions.AddItem('tendanivel1', 1, nil, info, {["quality"] = 100})
-				elseif itemData.name == 'tendanivel2' then
-					info = {
-						tendaid = math.random(111,999),
-						tendaOwner = Player.PlayerData.charinfo.firstname.." "..Player.PlayerData.charinfo.lastname,
-					}
-				Player.Functions.AddItem('tendanivel2', 1, nil, info, {["quality"] = 100})
-				elseif itemData.name == 'tendanivel3' then
-					info = {
-						tendaid = math.random(111,999),
-						tendaOwner = Player.PlayerData.charinfo.firstname.." "..Player.PlayerData.charinfo.lastname,
-					}
-				Player.Functions.AddItem('tendanivel3', 1, nil, info, {["quality"] = 100})
 				elseif itemData["name"] == "printerdocument" then
 					info.url = "https://cdn.discordapp.com/attachments/870094209783308299/870104331142189126/Logo_-_Display_Picture_-_Stylized_-_Red.png"
 				end
-				if AddItem(id, itemData["name"], amount, false, info) then
-					QBCore.Functions.Notify(source, "You Have Given " ..GetPlayerName(id).." "..amount.." "..itemData["name"].. "", "success")
+
+				if Player.Functions.AddItem(itemData["name"], amount, false, info) then
+					TriggerClientEvent('QBCore:Notify', source, "You Have Given " ..GetPlayerName(tonumber(args[1])).." "..amount.." "..itemData["name"].. "", "success")
 				else
-					QBCore.Functions.Notify(source, "Can't give item!", "error")
+					TriggerClientEvent('QBCore:Notify', source,  "Can't give item!", "error")
 				end
 			else
-				QBCore.Functions.Notify(source, "Item Does Not Exist", "error")
+				TriggerClientEvent('QBCore:Notify', source,  "Item Does Not Exist", "error")
 			end
+		else
+			TriggerClientEvent('QBCore:Notify', source,  "Invalid Amount", "error")
+		end
 	else
-		QBCore.Functions.Notify(source, "Player Is Not Online", "error")
+		TriggerClientEvent('QBCore:Notify', source,  "Player Is Not Online", "error")
 	end
 end, "admin")
 
@@ -2158,8 +2089,6 @@ QBCore.Commands.Add("randomitems", "Give Random Items (God Only)", {}, false, fu
 	end
 end, "god")
 
--- item
-
 QBCore.Commands.Add('clearinv', 'Clear Players Inventory (Admin Only)', { { name = 'id', help = 'Player ID' } }, false, function(source, args)
     local playerId = args[1] ~= '' and tonumber(args[1]) or source
     local Player = QBCore.Functions.GetPlayer(playerId)
@@ -2170,39 +2099,19 @@ QBCore.Commands.Add('clearinv', 'Clear Players Inventory (Admin Only)', { { name
     end
 end, 'admin')
 
-CreateUsableItem("driver_license", function(source, item)
-	local playerPed = GetPlayerPed(source)
-	local playerCoords = GetEntityCoords(playerPed)
-	local players = QBCore.Functions.GetPlayers()
-	for _, v in pairs(players) do
-		local targetPed = GetPlayerPed(v)
-		local dist = #(playerCoords - GetEntityCoords(targetPed))
-		if dist < 3.0 then
-			TriggerClientEvent('chat:addMessage', v,  {
-				template = '<div class="chat-message advert"><div class="chat-message-body"><strong>{0}:</strong><br><br> <strong>Civilian ID:</strong> {1} <strong>First Name:</strong> {2} <br><strong>Last Name:</strong> {3} <br><strong>Birth Date:</strong> {4} <br><strong>Licenses:</strong> {5}</div></div>',
-				args = {
-					"Drivers License",
-					item.info.firstname,
-					item.info.lastname,
-					item.info.birthdate,
-					item.info.type
-				}
-			} )
-		end
-    end
-end)
+-- Item's
 
-QBCore.Functions.CreateUseableItem("weaponlicense", function(source, item)
+QBCore.Functions.CreateUseableItem("driver_license", function(source, item)
+	local PlayerPed = GetPlayerPed(source)
+	local PlayerCoords = GetEntityCoords(PlayerPed)
 	for k, v in pairs(QBCore.Functions.GetPlayers()) do
-		local PlayerPed = GetPlayerPed(source)
 		local TargetPed = GetPlayerPed(v)
-		local dist = #(GetEntityCoords(PlayerPed) - GetEntityCoords(TargetPed))
+		local dist = #(PlayerCoords - GetEntityCoords(TargetPed))
 		if dist < 3.0 then
 			TriggerClientEvent('chat:addMessage', v,  {
-					template = '<div class="chat-message advert"><div class="chat-message-body"><strong>{0}:</strong><br><br> <strong>Civilian ID:</strong> {1} <strong>First Name:</strong> {2} <br><strong>Last Name:</strong> {3} <br><strong>Birth Date:</strong> {4} <br><strong>Licenses:</strong> {5}</div></div>',
+					template = '<div class="chat-message advert"><div class="chat-message-body"><strong>{0}:</strong><br><br> <strong>First Name:</strong> {1} <br><strong>Last Name:</strong> {2} <br><strong>Birth Date:</strong> {3} <br><strong>Licenses:</strong> {4}</div></div>',
 					args = {
-						"Weapon License",
-						item.info.citizenid,
+						"Drivers License",
 						item.info.firstname,
 						item.info.lastname,
 						item.info.birthdate,
@@ -2214,65 +2123,27 @@ QBCore.Functions.CreateUseableItem("weaponlicense", function(source, item)
 	end
 end)
 
-QBCore.Functions.CreateUseableItem("huntinglicense", function(source, item)
+QBCore.Functions.CreateUseableItem("id_card", function(source, item)
+	local PlayerPed = GetPlayerPed(source)
+	local PlayerCoords = GetEntityCoords(PlayerPed)
 	for k, v in pairs(QBCore.Functions.GetPlayers()) do
-		local PlayerPed = GetPlayerPed(source)
 		local TargetPed = GetPlayerPed(v)
-		local dist = #(GetEntityCoords(PlayerPed) - GetEntityCoords(TargetPed))
+		local dist = #(PlayerCoords - GetEntityCoords(TargetPed))
 		if dist < 3.0 then
+			local gender = "Man"
+			if item.info.gender == 1 then
+				gender = "Woman"
+			end
 			TriggerClientEvent('chat:addMessage', v,  {
-					template = '<div class="chat-message advert"><div class="chat-message-body"><strong>{0}:</strong><br><br> <strong>Civilian ID:</strong> {1} <strong>First Name:</strong> {2} <br><strong>Last Name:</strong> {3} <br><strong>Birth Date:</strong> {4} <br><strong>Licenses:</strong> {5}</div></div>',
+					template = '<div class="chat-message advert"><div class="chat-message-body"><strong>{0}:</strong><br><br> <strong>Civ ID:</strong> {1} <br><strong>First Name:</strong> {2} <br><strong>Last Name:</strong> {3} <br><strong>Birthdate:</strong> {4} <br><strong>Gender:</strong> {5} <br><strong>Nationality:</strong> {6}</div></div>',
 					args = {
-						"Hunting License",
+						"ID Card",
 						item.info.citizenid,
 						item.info.firstname,
 						item.info.lastname,
 						item.info.birthdate,
-						item.info.type
-					}
-				}
-			)
-		end
-	end
-end)
-
-QBCore.Functions.CreateUseableItem("fishinglicense", function(source, item)
-	for k, v in pairs(QBCore.Functions.GetPlayers()) do
-		local PlayerPed = GetPlayerPed(source)
-		local TargetPed = GetPlayerPed(v)
-		local dist = #(GetEntityCoords(PlayerPed) - GetEntityCoords(TargetPed))
-		if dist < 3.0 then
-			TriggerClientEvent('chat:addMessage', v,  {
-					template = '<div class="chat-message advert"><div class="chat-message-body"><strong>{0}:</strong><br><br> <strong>Civilian ID:</strong> {1} <strong>First Name:</strong> {2} <br><strong>Last Name:</strong> {3} <br><strong>Birth Date:</strong> {4} <br><strong>Licenses:</strong> {5}</div></div>',
-					args = {
-						"Fishing License",
-						item.info.citizenid,
-						item.info.firstname,
-						item.info.lastname,
-						item.info.birthdate,
-						item.info.type
-					}
-				}
-			)
-		end
-	end
-end)
-
-QBCore.Functions.CreateUseableItem("waterslicense", function(source, item)
-	for k, v in pairs(QBCore.Functions.GetPlayers()) do
-		local PlayerPed = GetPlayerPed(source)
-		local TargetPed = GetPlayerPed(v)
-		local dist = #(GetEntityCoords(PlayerPed) - GetEntityCoords(TargetPed))
-		if dist < 3.0 then
-			TriggerClientEvent('chat:addMessage', v,  {
-					template = '<div class="chat-message advert"><div class="chat-message-body"><strong>{0}:</strong><br><br> <strong>Civilian ID:</strong> {1} <strong>First Name:</strong> {2} <br><strong>Last Name:</strong> {3} <br><strong>Birth Date:</strong> {4} <br><strong>Licenses:</strong> {5}</div></div>',
-					args = {
-						"Waters License",
-						item.info.citizenid,
-						item.info.firstname,
-						item.info.lastname,
-						item.info.birthdate,
-						item.info.type
+						gender,
+						item.info.nationality
 					}
 				}
 			)
@@ -2307,6 +2178,34 @@ CreateUsableItem("id_card", function(source, item)
 			)
 		end
 	end
+end)
+
+-- Factor Event
+
+RegisterNetEvent("inventory:server:spawnOnGround", function(source, itemData, itemAmount)
+	local coords = GetEntityCoords(GetPlayerPed(source))
+	local itemInfo = QBCore.Shared.Items[itemData.name:lower()]
+	local dropId = CreateDropId()
+	Drops[dropId] = {}
+	Drops[dropId].items = {}
+
+	Drops[dropId].items[1] = {
+		name = itemInfo["name"],
+		amount = itemAmount,
+		info = itemData.info ~= nil and itemData.info or "",
+		label = itemInfo["label"],
+		description = itemInfo["description"] ~= nil and itemInfo["description"] or "",
+		weight = itemInfo["weight"],
+		type = itemInfo["type"],
+		unique = itemInfo["unique"],
+		useable = itemInfo["useable"],
+		image = itemInfo["image"],
+		slot = 1,
+		id = dropId,
+	}
+	local Ply = QBCore.Functions.GetPlayer(source)
+	TriggerEvent("qb-log:server:CreateLog", "drop", "New Item Spawn as Drop", "red", "**".. GetPlayerName(source) .. "** (citizenid: *"..Ply.PlayerData.citizenid.."* | id: *"..source.."*) overflowed inventory into drop; name: **"..itemData.name.."**, amount: **" .. itemAmount .. "**")
+	TriggerClientEvent("inventory:client:AddDropItem", -1, dropId, source, coords)
 end)
 
 -- Threads
