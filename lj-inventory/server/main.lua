@@ -2,11 +2,11 @@
 
 local QBCore = exports['qb-core']:GetCoreObject()
 local Drops = {}
-local Trunks = {}
-local Gloveboxes = {}
-local Stashes = {}
+Trunks = {}
+Gloveboxes = {}
+Stashes = {}
 local ShopItems = {}
-
+local vitri = {}
 -- Functions
 
 local function recipeContains(recipe, fromItem)
@@ -66,7 +66,7 @@ local function SetupShopItems(shop, shopItems)
 end
 
 -- Stash Items
-local function GetStashItems(stashId)
+function GetStashItems(stashId
 	local items = {}
 	local result = MySQL.Sync.fetchScalar('SELECT items FROM stashitems WHERE stash = ?', {stashId})
 	if result then
@@ -87,6 +87,7 @@ local function GetStashItems(stashId)
 						useable = itemInfo["useable"],
 						image = itemInfo["image"],
 						slot = item.slot,
+						created = item.created
 					}
 				end
 			end
@@ -95,7 +96,7 @@ local function GetStashItems(stashId)
 	return items
 end
 
-local function SaveStashItems(stashId, items)
+function SaveStashItems(stashId, items)
 	if Stashes[stashId].label ~= "Stash-None" then
 		if items then
 			for slot, item in pairs(items) do
@@ -291,7 +292,7 @@ local function AddToTrunk(plate, slot, otherslot, itemName, amount, info, create
 	end
 end
 
-local function RemoveFromTrunk(plate, slot, itemName, amount)
+function RemoveFromTrunk(plate, slot, itemName, amount)
 	if Trunks[plate].items[slot] ~= nil and Trunks[plate].items[slot].name == itemName then
 		if Trunks[plate].items[slot].amount > amount then
 			Trunks[plate].items[slot].amount = Trunks[plate].items[slot].amount - amount
@@ -310,7 +311,7 @@ local function RemoveFromTrunk(plate, slot, itemName, amount)
 end
 
 -- Glovebox items
-local function GetOwnedVehicleGloveboxItems(plate)
+function GetOwnedVehicleGloveboxItems(plate)
 	local items = {}
 	local result = MySQL.Sync.fetchScalar('SELECT items FROM gloveboxitems WHERE plate = ?', {plate})
 	if result then
@@ -339,7 +340,7 @@ local function GetOwnedVehicleGloveboxItems(plate)
 	return items
 end
 
-local function SaveOwnedGloveboxItems(plate, items)
+function SaveOwnedGloveboxItems(plate, items)
 	if Gloveboxes[plate].label ~= "Glovebox-None" then
 		if items ~= nil then
 			for slot, item in pairs(items) do
@@ -354,7 +355,7 @@ local function SaveOwnedGloveboxItems(plate, items)
 	end
 end
 
-local function AddToGlovebox(plate, slot, otherslot, itemName, amount, info, created)
+function AddToGlovebox(plate, slot, otherslot, itemName, amount, info, created)
 	local amount = tonumber(amount)
 	local ItemData = QBCore.Shared.Items[itemName]
 
@@ -804,7 +805,7 @@ RegisterNetEvent('inventory:server:OpenInventory', function(name, id, other)
 					secondInv.slots = 0
 				end
 			end
-			TriggerClientEvent("inventory:client:OpenInventory", src, {}, Player.PlayerData.items, secondInv)
+			TriggerClientEvent("inventory:client:OpenInventory", src, {}, Player.PlayerData.items, secondInv, id)
 		else
 			TriggerClientEvent("inventory:client:OpenInventory", src, {}, Player.PlayerData.items)
 		end
@@ -838,7 +839,32 @@ RegisterNetEvent('inventory:server:SaveInventory', function(type, id)
 		end
 	end
 end)
-
+RegisterNetEvent('q4d:server:setQuality',function (amount, name)
+	local src = source
+	local Player = QBCore.Functions.GetPlayer(src)
+	if name then
+		for k, v in pairs(Player.PlayerData.items) do
+			if v.name == name then
+				if (v.info.quality - amount) > 0 then
+					v.info.quality = v.info.quality - amount
+					Player.Functions.SetInventory(Player.PlayerData.items, true)
+				else
+					v.info.quality = 0
+					Player.Functions.SetInventory(Player.PlayerData.items, true)
+				end
+			end
+		end
+	else
+		local itemData = Player.PlayerData.items[vitri[src]]
+		if (itemData.info.quality - amount) > 0 then
+			itemData.info.quality = itemData.info.quality - amount
+			Player.Functions.SetInventory(Player.PlayerData.items, true)
+		else
+			itemData.info.quality = 0
+			Player.Functions.SetInventory(Player.PlayerData.items, true)
+		end
+	end
+end)
 -- RegisterNetEvent('inventory:server:UseItemSlot', function(slot)
 -- 	local src = source
 -- 	local Player = QBCore.Functions.GetPlayer(src)
@@ -884,6 +910,7 @@ RegisterNetEvent('inventory:server:UseItemSlot', function(slot)
 		elseif itemData.useable then
 			if itemData.info.quality then
 				if itemData.info.quality > 0 then
+						vitri[src] = slot
 					TriggerClientEvent("QBCore:Client:UseItem", src, itemData)
 					TriggerClientEvent('inventory:client:ItemBox', src, itemInfo, "use")
 				else
@@ -911,6 +938,7 @@ RegisterNetEvent('inventory:server:UseItem', function(inventory, item)
 					end
 				end
 			end
+				vitri[src] = item.slot
 			TriggerClientEvent("QBCore:Client:UseItem", src, itemData)
 		end
 	end
@@ -1446,6 +1474,7 @@ RegisterNetEvent('inventory:server:SetInventoryData', function(fromInventory, to
 		else
 			TriggerClientEvent("QBCore:Notify", src, "Item doesn't exist??", "error")
 		end
+				TriggerClientEvent("inventory:client:UpdatePlayerInventory", Player.PlayerData.source, false)
 	end
 end)
 

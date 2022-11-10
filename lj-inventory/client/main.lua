@@ -63,18 +63,12 @@ local function FormatWeaponAttachments(itemdata)
     itemdata.name = itemdata.name:upper()
     if itemdata.info.attachments ~= nil and next(itemdata.info.attachments) ~= nil then
         for k, v in pairs(itemdata.info.attachments) do
-            if WeaponAttachments[itemdata.name] ~= nil then
-                for key, value in pairs(WeaponAttachments[itemdata.name]) do
-                    if value.component == v.component then
-                        item = value.item
-                        attachments[#attachments+1] = {
-                            attachment = key,
-                            label = QBCore.Shared.Items[item].label
-                            --label = value.label
-                        }
-                    end
-                end
-            end
+            attachments[#attachments+1] = {
+                attachment = v.item,
+                label = v.label,
+                image = QBCore.Shared.Items[v.item].image,
+                component = v.component
+            }
         end
     end
     return attachments
@@ -330,7 +324,7 @@ RegisterNetEvent('inventory:server:RobPlayer', function(TargetId)
     })
 end)
 
-RegisterNetEvent('inventory:client:OpenInventory', function(PlayerAmmo, inventory, other)
+RegisterNetEvent('inventory:client:OpenInventory', function(PlayerAmmo, inventory, other, id)
     if not IsEntityDead(PlayerPedId()) then
         Wait(500)
         ToggleHotbar(false)
@@ -354,7 +348,7 @@ RegisterNetEvent('inventory:client:OpenInventory', function(PlayerAmmo, inventor
                 maxammo = Config.MaximumAmmoValues,
             })
             inInventory = true
-        end,inventory,other)
+        end,inventory,other, id)
     end
 end)
 
@@ -706,30 +700,26 @@ RegisterNUICallback('RemoveAttachment', function(data, cb)
     local ped = PlayerPedId()
     local WeaponData = QBCore.Shared.Items[data.WeaponData.name]
     local label = QBCore.Shared.Items
-    local Attachment = WeaponAttachments[WeaponData.name:upper()][data.AttachmentData.attachment]
+    data.AttachmentData.attachment = data.AttachmentData.attachment:gsub("(.*).*_",'')
 
     QBCore.Functions.TriggerCallback('weapons:server:RemoveAttachment', function(NewAttachments)
         if NewAttachments ~= false then
-            local Attachies = {}
-            RemoveWeaponComponentFromPed(ped, GetHashKey(data.WeaponData.name), GetHashKey(Attachment.component))
+            local attachments = {}
+            RemoveWeaponComponentFromPed(ped, GetHashKey(data.WeaponData.name), GetHashKey(data.AttachmentData.component))
             for k, v in pairs(NewAttachments) do
-                for wep, pew in pairs(WeaponAttachments[WeaponData.name:upper()]) do
-                    if v.component == pew.component then
-                        item = pew.item
-                        Attachies[#Attachies+1] = {
-                            attachment = pew.item,
-                            label = QBCore.Shared.Items[item].label,
-                        }
-                    end
-                end
+                attachments[#attachments+1] = {
+                    attachment = v.item,
+                    label = v.label,
+                    image = QBCore.Shared.Items[v.item].image
+                }
             end
             local DJATA = {
-                Attachments = Attachies,
+                Attachments = attachments,
                 WeaponData = WeaponData,
             }
             cb(DJATA)
         else
-            RemoveWeaponComponentFromPed(ped, GetHashKey(data.WeaponData.name), GetHashKey(Attachment.component))
+            RemoveWeaponComponentFromPed(ped, GetHashKey(data.WeaponData.name), GetHashKey(data.AttachmentData.component))
             cb({})
         end
     end, data.AttachmentData, data.WeaponData)
